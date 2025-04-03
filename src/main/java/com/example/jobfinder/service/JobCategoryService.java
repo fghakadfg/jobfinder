@@ -1,6 +1,6 @@
 package com.example.jobfinder.service;
 
-import com.example.jobfinder.model.JobCategory;
+import com.example.jobfinder.entity.JobCategory;
 import com.example.jobfinder.repository.JobCategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -9,17 +9,14 @@ import java.util.List;
 
 @Service
 public class JobCategoryService {
-
-    private final JobCategoryRepository jobCategoryRepository;
-
     @Autowired
-    public JobCategoryService(JobCategoryRepository jobCategoryRepository) {
-        this.jobCategoryRepository = jobCategoryRepository;
+    private JobCategoryRepository jobCategoryRepository;
+
+    public JobCategory createCategory(JobCategory category) {
+        return jobCategoryRepository.save(category);
     }
 
-    public List<JobCategory> getAllJobCategories() {
+    public List<JobCategory> getAllCategories() {
         return jobCategoryRepository.findAll();
     }
-
-    // Дополнительные методы можно добавить по необходимости
 }

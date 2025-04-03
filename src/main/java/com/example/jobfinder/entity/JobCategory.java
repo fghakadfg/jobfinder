@@ -1,12 +1,10 @@
-package com.example.jobfinder.model;
+package com.example.jobfinder.entity;
 
 import jakarta.persistence.*;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 @Table(name = "job_categories")
 public class JobCategory {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -15,13 +13,10 @@ public class JobCategory {
     private String name;
 
     // Геттеры
-    @JsonProperty("id")
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
+    public String getName() { return name; }
 
-    @JsonProperty("name")
-    public String getName() {
-        return name;
-    }
+    // Сеттеры
+    public void setId(Long id) { this.id = id; }
+    public void setName(String name) { this.name = name; }
 }

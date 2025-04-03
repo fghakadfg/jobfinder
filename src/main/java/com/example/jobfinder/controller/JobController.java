@@ -1,27 +1,26 @@
 package com.example.jobfinder.controller;
 
-import com.example.jobfinder.model.Job;
-import com.example.jobfinder.repository.JobRepository;
+import com.example.jobfinder.entity.JobListing;
+import com.example.jobfinder.service.JobService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/jobs")
+@RequestMapping("/api")
 public class JobController {
-    private final JobRepository jobRepository;
+    @Autowired
+    private JobService jobService;
 
-    public JobController(JobRepository jobRepository) {
-        this.jobRepository = jobRepository;
+    @PostMapping("/employer/jobs")
+    public ResponseEntity<JobListing> createJob(@RequestBody JobListing job) {
+        return ResponseEntity.ok(jobService.createJob(job));
     }
 
-    @GetMapping
-    public List<Job> getAllJobs() {
-        return jobRepository.findAll();
-    }
-
-    @PostMapping
-    public Job createJob(@RequestBody Job job) {
-        return jobRepository.save(job);
+    @GetMapping("/jobs/search")
+    public ResponseEntity<List<JobListing>> searchJobs(@RequestParam String title) {
+        return ResponseEntity.ok(jobService.searchJobs(title));
     }
 }

@@ -1,0 +1,10 @@
+package com.example.jobfinder.repository;
+
+import com.example.jobfinder.entity.WorkExperience;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+
+public interface WorkExperienceRepository extends JpaRepository<WorkExperience, Long> {
+    List<WorkExperience> findByUserId(Long userId);
+}
