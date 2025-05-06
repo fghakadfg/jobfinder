@@ -44,8 +44,17 @@ public class JobService {
         return jobListingRepository.findAll();
     }
 
-    public List<JobListing> searchJobs(String title) {
-        return jobListingRepository.findByTitleContainingIgnoreCase(title);
+    public List<JobListing> searchJobs(String title, String location) {
+        if ((title == null || title.isEmpty()) && (location == null || location.isEmpty())) {
+            return jobListingRepository.findAll();
+        }
+        if (title != null && !title.isEmpty() && (location == null || location.isEmpty())) {
+            return jobListingRepository.findByTitleContainingIgnoreCase(title);
+        }
+        if (location != null && !location.isEmpty() && (title == null || title.isEmpty())) {
+            return jobListingRepository.findByLocationContainingIgnoreCase(location);
+        }
+        return jobListingRepository.findByTitleContainingIgnoreCaseAndLocationContainingIgnoreCase(title, location);
     }
 
     public List<JobListing> getJobsByEmployer(Long employerId) {
