@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -66,20 +67,22 @@
 
     const VacanciesPage = () => {
         const [jobs, setJobs] = useState([]);
-        const [searchTerm, setSearchTerm] = useState('');
+        const [searchTitle, setSearchTitle] = useState('');
+        const [searchLocation, setSearchLocation] = useState('');
         const [loading, setLoading] = useState(false);
         const [error, setError] = useState('');
 
-        const fetchJobs = async (search = '') => {
+        const fetchJobs = async (title = '', location = '') => {
             setLoading(true);
             setError('');
             try {
-                const url = search
-                    ? `http://localhost:8080/api/jobs/search?title=${encodeURIComponent(search)}`
-                    : 'http://localhost:8080/api/jobs';
-                console.log('Отправка запроса:', url); // Для отладки
+                const params = new URLSearchParams();
+                if (title) params.append('title', title);
+                if (location) params.append('location', location);
+                const url = `http://localhost:8080/api/jobs/search?${params.toString()}` || 'http://localhost:8080/api/jobs';
+                console.log('Отправка запроса:', url);
                 const response = await axios.get(url);
-                console.log('Ответ сервера:', response.data); // Для отладки
+                console.log('Ответ сервера:', response.data);
                 setJobs(response.data);
             } catch (error) {
                 console.error('Ошибка загрузки вакансий:', error);
@@ -95,7 +98,7 @@
 
         const handleSearch = (e) => {
             e.preventDefault();
-            fetchJobs(searchTerm);
+            fetchJobs(searchTitle, searchLocation);
         };
 
         return (
@@ -118,21 +121,28 @@
                 </header>
                 <main className="flex-grow container mx-auto py-16 px-4">
                     <div className="mb-8 max-w-2xl mx-auto animate-fadeIn">
-                        <div className="flex gap-2">
+                        <form onSubmit={handleSearch} className="flex gap-2">
                             <input
                                 type="text"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                placeholder="Поиск вакансий..."
+                                value={searchTitle}
+                                onChange={(e) => setSearchTitle(e.target.value)}
+                                placeholder="Поиск по названию..."
+                                className="flex-1 p-3 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black transition duration-300"
+                            />
+                            <input
+                                type="text"
+                                value={searchLocation}
+                                onChange={(e) => setSearchLocation(e.target.value)}
+                                placeholder="Поиск по локации..."
                                 className="flex-1 p-3 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black transition duration-300"
                             />
                             <button
-                                onClick={handleSearch}
+                                type="submit"
                                 className="bg-black text-white px-6 py-3 rounded-md hover:bg-gray-800 transition transform hover:scale-105 duration-300"
                             >
                                 Найти
                             </button>
-                        </div>
+                        </form>
                     </div>
                     <h2 className="text-3xl font-light text-black mb-6 animate-fadeIn">Доступные вакансии</h2>
                     {error && <div className="text-red-500 mb-4 animate-fadeIn">{error}</div>}
@@ -159,5 +169,5 @@
 
     ReactDOM.render(<VacanciesPage />, document.getElementById('root'));
 </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'93b9cb288afabd2a',t:'MTc0NjU0ODMwNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
