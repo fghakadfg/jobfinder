@@ -48,11 +48,11 @@
 <script type="text/babel">
     const { useState, useEffect } = React;
 
-    const VacancyCard = ({ job, onRespond }) => (
+    const VacancyCard = ({ job }) => (
         <div className="bg-white rounded-md shadow-sm p-6 mb-6 hover:shadow-md transition-transform transform hover:scale-105 duration-300 animate-fadeIn">
             <h3 className="text-xl font-medium text-black">{job.title}</h3>
             <p className="text-gray-500 mt-1">
-                {job.companyName} • {job.location || 'Удалённо'}
+                {job.company ? job.company.name : 'Без компании'} • {job.location || 'Удалённо'}
             </p>
             <p className="text-gray-400 mt-2 line-clamp-2">{job.description}</p>
             <div className="mt-3 text-black">
@@ -61,41 +61,25 @@
             <div className="mt-2 text-sm text-gray-400">
                 Опубликовано: {new Date(job.createdAt).toLocaleDateString('ru-RU')}
             </div>
-            <button
-                onClick={() => onRespond(job.id)}
-                className="mt-4 bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800 transition transform hover:scale-105 duration-300"
-            >
-                Откликнуться
-            </button>
         </div>
     );
 
     const VacanciesPage = () => {
         const [jobs, setJobs] = useState([]);
         const [searchTerm, setSearchTerm] = useState('');
-        const [location, setLocation] = useState('');
-        const [minSalary, setMinSalary] = useState('');
-        const [maxSalary, setMaxSalary] = useState('');
         const [loading, setLoading] = useState(false);
         const [error, setError] = useState('');
-        const [token, setToken] = useState(localStorage.getItem('token') || '');
 
-        const fetchJobs = async () => {
+        const fetchJobs = async (search = '') => {
             setLoading(true);
             setError('');
             try {
-                let url = 'http://localhost:8080/api/jobs';
-                const params = new URLSearchParams();
-                if (searchTerm) params.append('title', searchTerm);
-                if (location) params.append('location', location);
-                if (minSalary && maxSalary) {
-                    params.append('minSalary', minSalary);
-                    params.append('maxSalary', maxSalary);
-                }
-                if (params.toString()) url += `?${params.toString()}`;
-                console.log('Отправка запроса:', url);
+                const url = search
+                    ? `http://localhost:8080/api/jobs/search?title=${encodeURIComponent(search)}`
+                    : 'http://localhost:8080/api/jobs';
+                console.log('Отправка запроса:', url); // Для отладки
                 const response = await axios.get(url);
-                console.log('Ответ сервера:', response.data);
+                console.log('Ответ сервера:', response.data); // Для отладки
                 setJobs(response.data);
             } catch (error) {
                 console.error('Ошибка загрузки вакансий:', error);
@@ -105,29 +89,13 @@
             setLoading(false);
         };
 
-        const handleRespond = async (jobId) => {
-            if (!token) {
-                setError('Пожалуйста, войдите, чтобы откликнуться');
-                return;
-            }
-            try {
-                await axios.post(`http://localhost:8080/api/responses/${jobId}`, {}, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                setError('Отклик успешно отправлен');
-            } catch (error) {
-                console.error('Ошибка при отправке отклика:', error);
-                setError(`Не удалось отправить отклик: ${error.message}`);
-            }
-        };
-
         useEffect(() => {
             fetchJobs();
         }, []);
 
         const handleSearch = (e) => {
             e.preventDefault();
-            fetchJobs();
+            fetchJobs(searchTerm);
         };
 
         return (
@@ -150,38 +118,17 @@
                 </header>
                 <main className="flex-grow container mx-auto py-16 px-4">
                     <div className="mb-8 max-w-2xl mx-auto animate-fadeIn">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="flex gap-2">
                             <input
                                 type="text"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                placeholder="Поиск по названию..."
-                                className="p-3 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black transition duration-300"
-                            />
-                            <input
-                                type="text"
-                                value={location}
-                                onChange={(e) => setLocation(e.target.value)}
-                                placeholder="Город..."
-                                className="p-3 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black transition duration-300"
-                            />
-                            <input
-                                type="number"
-                                value={minSalary}
-                                onChange={(e) => setMinSalary(e.target.value)}
-                                placeholder="Минимальная зарплата..."
-                                className="p-3 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black transition duration-300"
-                            />
-                            <input
-                                type="number"
-                                value={maxSalary}
-                                onChange={(e) => setMaxSalary(e.target.value)}
-                                placeholder="Максимальная зарплата..."
-                                className="p-3 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black transition duration-300"
+                                placeholder="Поиск вакансий..."
+                                className="flex-1 p-3 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black transition duration-300"
                             />
                             <button
                                 onClick={handleSearch}
-                                className="bg-black text-white px-6 py-3 rounded-md hover:bg-gray-800 transition transform hover:scale-105 duration-300 col-span-1 md:col-span-2"
+                                className="bg-black text-white px-6 py-3 rounded-md hover:bg-gray-800 transition transform hover:scale-105 duration-300"
                             >
                                 Найти
                             </button>
@@ -196,7 +143,7 @@
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {jobs.map((job) => (
-                                <VacancyCard key={job.id} job={job} onRespond={handleRespond} />
+                                <VacancyCard key={job.id} job={job} />
                             ))}
                         </div>
                     )}

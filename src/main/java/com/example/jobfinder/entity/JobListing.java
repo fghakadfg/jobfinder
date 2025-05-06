@@ -28,8 +28,17 @@ public class JobListing {
     @JoinColumn(name = "company_id")
     private Company company;
 
+    @ManyToOne
+    @JoinColumn(name = "employer_id")
+    private User employer;
+
     @Column(name = "created_at")
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
 
     // Геттеры
     public Long getId() { return id; }
@@ -39,6 +48,7 @@ public class JobListing {
     public Integer getSalaryMax() { return salaryMax; }
     public String getLocation() { return location; }
     public Company getCompany() { return company; }
+    public User getEmployer() { return employer; }
     public LocalDateTime getCreatedAt() { return createdAt; }
 
     // Сеттеры
@@ -49,5 +59,6 @@ public class JobListing {
     public void setSalaryMax(Integer salaryMax) { this.salaryMax = salaryMax; }
     public void setLocation(String location) { this.location = location; }
     public void setCompany(Company company) { this.company = company; }
+    public void setEmployer(User employer) { this.employer = employer; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }
