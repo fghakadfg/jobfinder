@@ -48,38 +48,85 @@
 <script type="text/babel">
     const { useState, useEffect } = React;
 
-    const VacancyCard = ({ job }) => (
-        <div className="bg-white rounded-md shadow-sm p-6 mb-6 hover:shadow-md transition-transform transform hover:scale-105 duration-300 animate-fadeIn">
-            <h3 className="text-xl font-medium text-black">{job.title}</h3>
-            <p className="text-gray-500 mt-1">
-                {job.company ? job.company.name : 'Без компании'} • {job.location || 'Удалённо'}
-            </p>
-            <p className="text-gray-400 mt-2 line-clamp-2">{job.description}</p>
-            <div className="mt-3 text-black">
-                Зарплата: {job.salaryMin ? `${job.salaryMin} - ${job.salaryMax} USD` : 'Не указана'}
+    const VacancyCard = ({ job, onApply }) => {
+        const [hasApplied, setHasApplied] = useState(false);
+        const [loading, setLoading] = useState(true);
+
+        useEffect(() => {
+            const checkApplyStatus = async () => {
+                const token = localStorage.getItem('token');
+                if (token) {
+                    try {
+                        const response = await axios.get(
+                            `http://localhost:8080/api/applicant/hasApplied?jobId=${job.id}`,
+                            {
+                                headers: { Authorization: `Bearer ${token}` }
+                            }
+                        );
+                        setHasApplied(response.data);
+                    } catch (error) {
+                        console.error('Ошибка проверки статуса отклика:', error);
+                    }
+                }
+                setLoading(false);
+            };
+            checkApplyStatus();
+        }, [job.id]);
+
+        const handleApplyClick = () => {
+            if (!hasApplied) {
+                onApply(job.id);
+            }
+        };
+
+        if (loading) {
+            return <div className="spinner"></div>; // Показываем спиннер во время загрузки
+        }
+
+        return (
+            <div className="bg-white rounded-md shadow-sm p-6 mb-6 hover:shadow-md transition-transform transform hover:scale-105 duration-300 animate-fadeIn">
+                <h3 className="text-xl font-medium text-black">{job.title}</h3>
+                <p className="text-gray-500 mt-1">
+                    {job.companyName ? job.companyName : 'Без компании'} • {job.location || 'Удалённо'}
+                </p>
+                <p className="text-gray-400 mt-2 line-clamp-2">{job.description}</p>
+                <div className="mt-3 text-black">
+                    Зарплата: {job.salaryMin ? `${job.salaryMin} - ${job.salaryMax} USD` : 'Не указана'}
+                </div>
+                <div className="mt-2 text-sm text-gray-400">
+                    Опубликовано: {new Date(job.createdAt).toLocaleDateString('ru-RU')}
+                </div>
+                <button
+                    onClick={handleApplyClick}
+                    disabled={hasApplied}
+                    className={`mt-4 text-white px-4 py-2 rounded-md transition duration-300 ${hasApplied ? 'bg-gray-400 cursor-not-allowed' : 'bg-black hover:bg-gray-800'}`}
+                >
+                    {hasApplied ? 'Отклик уже отправлен' : 'Откликнуться'}
+                </button>
             </div>
-            <div className="mt-2 text-sm text-gray-400">
-                Опубликовано: {new Date(job.createdAt).toLocaleDateString('ru-RU')}
-            </div>
-        </div>
-    );
+        );
+    };
 
     const VacanciesPage = () => {
         const [jobs, setJobs] = useState([]);
         const [searchTitle, setSearchTitle] = useState('');
         const [searchLocation, setSearchLocation] = useState('');
+        const [salaryMin, setSalaryMin] = useState('');
+        const [salaryMax, setSalaryMax] = useState('');
         const [loading, setLoading] = useState(false);
         const [error, setError] = useState('');
 
-        const fetchJobs = async (title = '', location = '') => {
+        const fetchJobs = async (title = '', location = '', salaryMin = null, salaryMax = null) => {
             setLoading(true);
             setError('');
             try {
                 let url = 'http://localhost:8080/api/jobs';
-                if (title || location) {
+                if (title || location || salaryMin || salaryMax) {
                     const params = new URLSearchParams();
                     if (title) params.append('title', title);
                     if (location) params.append('location', location);
+                    if (salaryMin) params.append('salaryMin', salaryMin);
+                    if (salaryMax) params.append('salaryMax', salaryMax);
                     url = `http://localhost:8080/api/jobs/search?${params.toString()}`;
                 }
                 console.log('Отправка запроса:', url);
@@ -98,13 +145,45 @@
             setLoading(false);
         };
 
+        const handleApply = async (jobId) => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                setError('Пожалуйста, войдите как соискатель, чтобы откликнуться на вакансию');
+                return;
+            }
+            try {
+                const response = await axios.post(
+                    `http://localhost:8080/api/applicant/responses?jobId=${jobId}`,
+                    {},
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    }
+                );
+                alert('Отклик успешно отправлен!');
+                console.log('Отклик:', response.data);
+                // Обновляем статус после успешного отклика
+                setJobs(jobs.map(j => j.id === jobId ? { ...j, applied: true } : j));
+            } catch (error) {
+                console.error('Ошибка при отправке отклика:', error);
+                setError(`Не удалось отправить отклик: ${error.response?.data?.message || error.message}`);
+            }
+        };
+
         useEffect(() => {
             fetchJobs();
         }, []);
 
         const handleSearch = (e) => {
             e.preventDefault();
-            fetchJobs(searchTitle, searchLocation);
+            const min = salaryMin ? parseInt(salaryMin) : null;
+            const max = salaryMax ? parseInt(salaryMax) : null;
+            if (min && max && min > max) {
+                setError('Минимальная зарплата не может быть больше максимальной');
+                return;
+            }
+            fetchJobs(searchTitle, searchLocation, min, max);
         };
 
         return (
@@ -127,24 +206,42 @@
                 </header>
                 <main className="flex-grow container mx-auto py-16 px-4">
                     <div className="mb-8 max-w-2xl mx-auto animate-fadeIn">
-                        <form onSubmit={handleSearch} className="flex gap-2">
-                            <input
-                                type="text"
-                                value={searchTitle}
-                                onChange={(e) => setSearchTitle(e.target.value)}
-                                placeholder="Поиск по названию..."
-                                className="flex-1 p-3 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black transition duration-300"
-                            />
-                            <input
-                                type="text"
-                                value={searchLocation}
-                                onChange={(e) => setSearchLocation(e.target.value)}
-                                placeholder="Поиск по локации..."
-                                className="flex-1 p-3 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black transition duration-300"
-                            />
+                        <form onSubmit={handleSearch} className="space-y-4">
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={searchTitle}
+                                    onChange={(e) => setSearchTitle(e.target.value)}
+                                    placeholder="Поиск по названию..."
+                                    className="flex-1 p-3 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black transition duration-300"
+                                />
+                                <input
+                                    type="text"
+                                    value={searchLocation}
+                                    onChange={(e) => setSearchLocation(e.target.value)}
+                                    placeholder="Поиск по локации..."
+                                    className="flex-1 p-3 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black transition duration-300"
+                                />
+                            </div>
+                            <div className="flex gap-2">
+                                <input
+                                    type="number"
+                                    value={salaryMin}
+                                    onChange={(e) => setSalaryMin(e.target.value)}
+                                    placeholder="Мин. зарплата (USD)"
+                                    className="flex-1 p-3 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black transition duration-300"
+                                />
+                                <input
+                                    type="number"
+                                    value={salaryMax}
+                                    onChange={(e) => setSalaryMax(e.target.value)}
+                                    placeholder="Макс. зарплата (USD)"
+                                    className="flex-1 p-3 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black transition duration-300"
+                                />
+                            </div>
                             <button
                                 type="submit"
-                                className="bg-black text-white px-6 py-3 rounded-md hover:bg-gray-800 transition transform hover:scale-105 duration-300"
+                                className="bg-black text-white px-6 py-3 rounded-md hover:bg-gray-800 transition transform hover:scale-105 duration-300 w-full"
                             >
                                 Найти
                             </button>
@@ -159,7 +256,7 @@
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {jobs.map((job) => (
-                                <VacancyCard key={job.id} job={job} />
+                                <VacancyCard key={job.id} job={job} onApply={handleApply} />
                             ))}
                         </div>
                     )}

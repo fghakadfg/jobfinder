@@ -12,7 +12,7 @@ public class Application {
 
     @ManyToOne
     @JoinColumn(name = "job_id")
-    private JobListing job;
+    private Vacancy job;
 
     @ManyToOne
     @JoinColumn(name = "applicant_id")
@@ -37,7 +37,7 @@ public class Application {
 
     // Геттеры
     public Long getId() { return id; }
-    public JobListing getJob() { return job; }
+    public Vacancy getJob() { return job; }
     public User getApplicant() { return applicant; }
     public String getResume() { return resume; }
     public String getCoverLetter() { return coverLetter; }
@@ -46,7 +46,7 @@ public class Application {
 
     // Сеттеры
     public void setId(Long id) { this.id = id; }
-    public void setJob(JobListing job) { this.job = job; }
+    public void setJob(Vacancy job) { this.job = job; }
     public void setApplicant(User applicant) { this.applicant = applicant; }
     public void setResume(String resume) { this.resume = resume; }
     public void setCoverLetter(String coverLetter) { this.coverLetter = coverLetter; }

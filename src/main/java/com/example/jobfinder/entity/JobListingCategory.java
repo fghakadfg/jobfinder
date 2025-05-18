@@ -8,7 +8,7 @@ public class JobListingCategory {
     @Id
     @ManyToOne
     @JoinColumn(name = "job_id")
-    private JobListing job;
+    private Vacancy job;
 
     @Id
     @ManyToOne
@@ -16,10 +16,10 @@ public class JobListingCategory {
     private JobCategory category;
 
     // Геттеры
-    public JobListing getJob() { return job; }
+    public Vacancy getJob() { return job; }
     public JobCategory getCategory() { return category; }
 
     // Сеттеры
-    public void setJob(JobListing job) { this.job = job; }
+    public void setJob(Vacancy job) { this.job = job; }
     public void setCategory(JobCategory category) { this.category = category; }
 }

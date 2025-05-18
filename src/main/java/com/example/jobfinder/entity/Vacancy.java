@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "job_listings")
-public class JobListing {
+public class Vacancy {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

@@ -11,18 +11,18 @@ public class JobRequirement {
 
     @ManyToOne
     @JoinColumn(name = "job_id")
-    private JobListing job;
+    private Vacancy job;
 
     @Column(nullable = false)
     private String requirement;
 
     // Геттеры
     public Long getId() { return id; }
-    public JobListing getJob() { return job; }
+    public Vacancy getJob() { return job; }
     public String getRequirement() { return requirement; }
 
     // Сеттеры
     public void setId(Long id) { this.id = id; }
-    public void setJob(JobListing job) { this.job = job; }
+    public void setJob(Vacancy job) { this.job = job; }
     public void setRequirement(String requirement) { this.requirement = requirement; }
 }

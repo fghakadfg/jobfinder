@@ -1,27 +1,20 @@
 package com.example.jobfinder.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Positive;
+import java.time.LocalDateTime;
 
-public class JobListingDTO {
-    @NotBlank(message = "Title is required")
+public class VacancyResponseDTO {
+    private Long id;
     private String title;
-
-    @NotBlank(message = "Description is required")
     private String description;
-
-    @Positive(message = "Salary min must be positive")
     private Integer salaryMin;
-
-    @Positive(message = "Salary max must be positive")
     private Integer salaryMax;
-
-    @NotBlank(message = "Location is required")
     private String location;
-
-    private Long companyId;
+    private String companyName;
+    private LocalDateTime createdAt;
 
     // Геттеры и сеттеры
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
     public String getDescription() { return description; }
@@ -32,6 +25,8 @@ public class JobListingDTO {
     public void setSalaryMax(Integer salaryMax) { this.salaryMax = salaryMax; }
     public String getLocation() { return location; }
     public void setLocation(String location) { this.location = location; }
-    public Long getCompanyId() { return companyId; }
-    public void setCompanyId(Long companyId) { this.companyId = companyId; }
+    public String getCompanyName() { return companyName; }
+    public void setCompanyName(String companyName) { this.companyName = companyName; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

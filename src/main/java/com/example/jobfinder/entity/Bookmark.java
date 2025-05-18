@@ -16,7 +16,7 @@ public class Bookmark {
 
     @ManyToOne
     @JoinColumn(name = "job_id")
-    private JobListing job;
+    private Vacancy job;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -24,12 +24,12 @@ public class Bookmark {
     // Геттеры
     public Long getId() { return id; }
     public User getUser() { return user; }
-    public JobListing getJob() { return job; }
+    public Vacancy getJob() { return job; }
     public LocalDateTime getCreatedAt() { return createdAt; }
 
     // Сеттеры
     public void setId(Long id) { this.id = id; }
     public void setUser(User user) { this.user = user; }
-    public void setJob(JobListing job) { this.job = job; }
+    public void setJob(Vacancy job) { this.job = job; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

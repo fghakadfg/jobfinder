@@ -12,7 +12,7 @@ public class JobView {
 
     @ManyToOne
     @JoinColumn(name = "job_id")
-    private JobListing job;
+    private Vacancy job;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -23,13 +23,13 @@ public class JobView {
 
     // Геттеры
     public Long getId() { return id; }
-    public JobListing getJob() { return job; }
+    public Vacancy getJob() { return job; }
     public User getUser() { return user; }
     public LocalDateTime getViewedAt() { return viewedAt; }
 
     // Сеттеры
     public void setId(Long id) { this.id = id; }
-    public void setJob(JobListing job) { this.job = job; }
+    public void setJob(Vacancy job) { this.job = job; }
     public void setUser(User user) { this.user = user; }
     public void setViewedAt(LocalDateTime viewedAt) { this.viewedAt = viewedAt; }
 }
