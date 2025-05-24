@@ -29,7 +29,7 @@ public class Message {
     private Response response;
 
     @Column(name = "is_read")
-    private boolean isRead = false; // Поле для отметки прочитанных сообщений
+    private Boolean isRead = false; // Изменено на Boolean с значением по умолчанию
 
     // Геттеры
     public Long getId() { return id; }
@@ -38,7 +38,7 @@ public class Message {
     public String getContent() { return content; }
     public LocalDateTime getSentAt() { return sentAt; }
     public Response getResponse() { return response; }
-    public boolean isRead() { return isRead; }
+    public Boolean getIsRead() { return isRead; } // Изменен геттер для возврата Boolean
 
     // Сеттеры
     public void setId(Long id) { this.id = id; }
@@ -47,5 +47,5 @@ public class Message {
     public void setContent(String content) { this.content = content; }
     public void setSentAt(LocalDateTime sentAt) { this.sentAt = sentAt; }
     public void setResponse(Response response) { this.response = response; }
-    public void setRead(boolean read) { this.isRead = read; }
+    public void setRead(Boolean read) { this.isRead = read; } // Изменен сеттер для приема Boolean
 }
