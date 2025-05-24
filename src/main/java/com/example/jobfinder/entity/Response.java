@@ -23,6 +23,9 @@ public class Response {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Column(name = "unread_messages")
+    private Integer unreadMessages = 0; // Поле для подсчета непрочитанных сообщений
+
     // Геттеры и сеттеры
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -32,4 +35,6 @@ public class Response {
     public void setJob(Vacancy job) { this.job = job; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public Integer getUnreadMessages() { return unreadMessages; }
+    public void setUnreadMessages(Integer unreadMessages) { this.unreadMessages = unreadMessages; }
 }

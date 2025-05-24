@@ -1,21 +1,10 @@
 package com.example.jobfinder.service;
 
-import com.example.jobfinder.dto.ResponseDTO;
-import com.example.jobfinder.entity.Vacancy;
-import com.example.jobfinder.entity.Response;
-import com.example.jobfinder.entity.User;
-import com.example.jobfinder.repository.VacancyRepository;
-import com.example.jobfinder.repository.ResponseRepository;
-import com.example.jobfinder.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import com.example.jobfinder.dto.ResponseDTO; import com.example.jobfinder.entity.Vacancy; import com.example.jobfinder.entity.Response; import com.example.jobfinder.entity.User; import com.example.jobfinder.repository.VacancyRepository; import com.example.jobfinder.repository.ResponseRepository; import com.example.jobfinder.repository.UserRepository; import org.springframework.beans.factory.annotation.Autowired; import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.time.LocalDateTime; import java.util.List; import java.util.stream.Collectors;
 
-@Service
-public class ResponseService {
+@Service public class ResponseService {
 
     @Autowired
     private ResponseRepository responseRepository;
@@ -33,6 +22,7 @@ public class ResponseService {
         dto.setJobId(response.getJob().getId());
         dto.setJobTitle(response.getJob().getTitle());
         dto.setCreatedAt(response.getCreatedAt());
+        dto.setUnreadMessages(response.getUnreadMessages());
         return dto;
     }
 
@@ -53,6 +43,7 @@ public class ResponseService {
         response.setApplicant(applicant);
         response.setJob(job);
         response.setCreatedAt(LocalDateTime.now());
+        response.setUnreadMessages(0); // Инициализация
         return convertToDTO(responseRepository.save(response));
     }
 
@@ -73,4 +64,5 @@ public class ResponseService {
                 .orElseThrow(() -> new RuntimeException("Applicant not found"));
         return responseRepository.existsByApplicantIdAndJobId(applicant.getId(), jobId);
     }
+
 }

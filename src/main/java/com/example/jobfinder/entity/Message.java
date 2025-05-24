@@ -24,12 +24,21 @@ public class Message {
     @Column(name = "sent_at")
     private LocalDateTime sentAt = LocalDateTime.now();
 
+    @ManyToOne
+    @JoinColumn(name = "response_id") // Связь с откликом
+    private Response response;
+
+    @Column(name = "is_read")
+    private boolean isRead = false; // Поле для отметки прочитанных сообщений
+
     // Геттеры
     public Long getId() { return id; }
     public User getSender() { return sender; }
     public User getReceiver() { return receiver; }
     public String getContent() { return content; }
     public LocalDateTime getSentAt() { return sentAt; }
+    public Response getResponse() { return response; }
+    public boolean isRead() { return isRead; }
 
     // Сеттеры
     public void setId(Long id) { this.id = id; }
@@ -37,4 +46,6 @@ public class Message {
     public void setReceiver(User receiver) { this.receiver = receiver; }
     public void setContent(String content) { this.content = content; }
     public void setSentAt(LocalDateTime sentAt) { this.sentAt = sentAt; }
+    public void setResponse(Response response) { this.response = response; }
+    public void setRead(boolean read) { this.isRead = read; }
 }

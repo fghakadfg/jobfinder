@@ -1,18 +1,12 @@
 package com.example.jobfinder.service;
 
-import com.example.jobfinder.dto.VacancyResponseDTO;
-import com.example.jobfinder.entity.Vacancy;
-import com.example.jobfinder.repository.VacancyRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import com.example.jobfinder.dto.VacancyResponseDTO; import com.example.jobfinder.entity.Vacancy; import com.example.jobfinder.repository.VacancyRepository; import org.springframework.beans.factory.annotation.Autowired; import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Service
-public class VacancyService {
-    @Autowired
-    private VacancyRepository vacancyRepository;
+@Service public class VacancyService { @Autowired private VacancyRepository vacancyRepository;
 
     public Vacancy createJob(Vacancy job) {
         return vacancyRepository.save(job);
@@ -126,4 +120,9 @@ public class VacancyService {
         }
         return convertToDTOList(jobs);
     }
+
+    public Optional<Vacancy> getVacancyById(Long id) {
+        return vacancyRepository.findById(id);
+    }
+
 }

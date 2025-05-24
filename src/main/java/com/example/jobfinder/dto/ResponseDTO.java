@@ -2,12 +2,7 @@ package com.example.jobfinder.dto;
 
 import java.time.LocalDateTime;
 
-public class ResponseDTO {
-    private Long id;
-    private String applicantEmail;
-    private Long jobId;
-    private String jobTitle;
-    private LocalDateTime createdAt;
+public class ResponseDTO { private Long id; private String applicantEmail; private Long jobId; private String jobTitle; private LocalDateTime createdAt; private Integer unreadMessages;
 
     // Getters and Setters
     public Long getId() {
@@ -49,4 +44,13 @@ public class ResponseDTO {
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
+
+    public Integer getUnreadMessages() {
+        return unreadMessages;
+    }
+
+    public void setUnreadMessages(Integer unreadMessages) {
+        this.unreadMessages = unreadMessages;
+    }
+
 }
