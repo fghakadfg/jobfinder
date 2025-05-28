@@ -38,6 +38,9 @@ public class SecurityConfig {
                                 "/api/jobs/search/**",
                                 "/error",
                                 "/**.html",
+                                "/**.js",
+                                "/api/employer/**",
+                                "/api/applicant/**",
                                 "/api/messages/**" // Добавляем для тестов
                         ).permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")

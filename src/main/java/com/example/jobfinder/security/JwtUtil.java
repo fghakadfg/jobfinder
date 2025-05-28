@@ -13,11 +13,19 @@ import java.util.Map;
 
 @Component
 public class JwtUtil {
+
     @Value("${jwt.secret}")
     private String secret;
 
     @Value("${jwt.expiration}")
     private Long expiration;
+
+    public String generateToken(UserDetails userDetails, Long userId) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", userDetails.getAuthorities().iterator().next().getAuthority());
+        claims.put("id", userId);
+        return createToken(claims, userDetails.getUsername());
+    }
 
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
@@ -43,7 +51,20 @@ public class JwtUtil {
         try {
             return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody().getSubject();
         } catch (Exception e) {
-            return null; // Или выбросить кастомное исключение
+            return null;
+        }
+    }
+
+    public Long extractId(String token) {
+        try {
+            if (token == null || !token.startsWith("Bearer ")) {
+                throw new IllegalArgumentException("Invalid token format");
+            }
+            String jwtToken = token.replace("Bearer ", "");
+            Claims claims = Jwts.parser().setSigningKey(secret).parseClaimsJws(jwtToken).getBody();
+            return claims.get("id", Long.class);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Failed to extract ID from token", e);
         }
     }
 
@@ -69,7 +90,7 @@ public class JwtUtil {
         try {
             return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody().getExpiration().before(new Date());
         } catch (Exception e) {
-            return true; // Если токен некорректен, считаем его истёкшим
+            return true;
         }
     }
 }

@@ -4,6 +4,7 @@ import com.example.jobfinder.dto.VacancyCreateDTO;
 import com.example.jobfinder.dto.VacancyResponseDTO;
 import com.example.jobfinder.dto.ResponseDTO;
 import com.example.jobfinder.entity.Company;
+import com.example.jobfinder.entity.Response;
 import com.example.jobfinder.entity.User;
 import com.example.jobfinder.entity.Vacancy;
 import com.example.jobfinder.repository.VacancyRepository;
@@ -11,7 +12,9 @@ import com.example.jobfinder.service.CompanyService;
 import com.example.jobfinder.service.ResponseService;
 import com.example.jobfinder.service.UserService;
 import com.example.jobfinder.service.VacancyService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import com.example.jobfinder.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -23,7 +26,8 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api")
 public class VacancyController {
-
+    @Autowired
+    private JwtUtil jwtUtil;
     @Autowired
     private VacancyService vacancyService;
 
@@ -50,7 +54,7 @@ public class VacancyController {
         job.setLocation(jobDTO.getLocation());
         job.setCompany(jobDTO.getCompanyId() != null ? companyService.getCompanyById(jobDTO.getCompanyId())
                 .orElseThrow(() -> new RuntimeException("Company not found")) : null);
-        job.setEmployer(applicantUser);
+        job.setEmployer(applicantUser); // Убедимся, что employer устанавливается
         Vacancy savedJob = vacancyService.createJob(job);
         return ResponseEntity.ok(vacancyService.convertToDTO(savedJob));
     }
@@ -126,5 +130,15 @@ public class VacancyController {
     public ResponseEntity<Boolean> hasApplied(@RequestParam Long jobId, Authentication authentication) {
         boolean applied = responseService.hasApplied(jobId, authentication.getName());
         return ResponseEntity.ok(applied);
+    }
+
+    @GetMapping("/responses/{id}")
+    public ResponseEntity<ResponseDTO> getResponseById(@PathVariable Long id, Authentication authentication) {
+        User user = userService.findByEmail(authentication.getName());
+        ResponseDTO response = responseService.getResponseById(id);
+        if (response == null || (!response.getApplicantId().equals(user.getId()) && !response.getEmployerId().equals(user.getId()))) {
+            throw new IllegalArgumentException("Response not found or access denied");
+        }
+        return ResponseEntity.ok(response);
     }
 }

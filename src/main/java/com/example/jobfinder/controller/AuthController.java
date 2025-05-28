@@ -43,8 +43,8 @@ public class AuthController {
             UserDetails userDetails = authentication.getPrincipal() instanceof UserDetails
                     ? (UserDetails) authentication.getPrincipal()
                     : userDetailsService.loadUserByUsername(loginRequest.getEmail());
-            String token = jwtUtil.generateToken(userDetails);
             User user = userService.findByEmail(loginRequest.getEmail());
+            String token = jwtUtil.generateToken(userDetails, user.getId()); // Используем новый метод с id
             String role = "ROLE_" + user.getRole().name();
             return ResponseEntity.ok(new AuthResponse(token, role));
         } catch (AuthenticationException e) {
