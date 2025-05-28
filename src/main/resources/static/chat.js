@@ -8,6 +8,7 @@ function getUserIdFromToken() {
     }
     try {
         const tokenPayload = JSON.parse(atob(token.split('.')[1]));
+        console.log('Token payload:', tokenPayload);
         return tokenPayload.id || null;
     } catch (e) {
         console.error('Error parsing token:', e.message);
@@ -18,7 +19,7 @@ function getUserIdFromToken() {
 async function fetchUnreadCount(responseId) {
     const userId = getUserIdFromToken();
     if (!userId) {
-        console.error('User ID not found in token');
+        console.warn('User ID not found in token, skipping fetchUnreadCount');
         return 0;
     }
     try {
@@ -79,11 +80,22 @@ async function loadMessages(responseId) {
         if (!response.ok) throw new Error('Ошибка загрузки сообщений');
         const messages = await response.json();
         console.log('Loaded messages for responseId', responseId, ':', JSON.stringify(messages, null, 2));
-        const userId = getUserIdFromToken();
+        const userEmail = getUserEmail();
+        console.log('Current user email:', userEmail);
         const chatMessages = document.getElementById('chat-messages');
-        chatMessages.innerHTML = messages.length > 0 ? messages.map(msg => `
-            <p class="${msg.senderEmail === getUserEmail() ? 'text-right' : 'text-left'} text-gray-700">${msg.content} <span class="text-gray-400 text-xs">${new Date(msg.sentAt).toLocaleString()}</span></p>
-        `).join('') : '<p class="text-gray-500 text-center">Нет сообщений</p>';
+        chatMessages.innerHTML = messages.length > 0 ? messages.map(msg => {
+            console.log('Message sender email:', msg.sender.email);
+            // Извлекаем email из msg.sender.email
+            const senderEmail = msg.sender && msg.sender.email ? msg.sender.email.toLowerCase() : '';
+            const currentUserEmail = userEmail ? userEmail.toLowerCase() : '';
+            const isSender = senderEmail === currentUserEmail && senderEmail !== '';
+            return `
+                <div class="chat-message ${isSender ? 'sender' : 'receiver'}">
+                    ${msg.content}
+                    <div class="timestamp">${new Date(msg.sentAt).toLocaleString()}</div>
+                </div>
+            `;
+        }).join('') : '<p class="text-gray-500 text-center">Нет сообщений</p>';
         chatMessages.scrollTop = chatMessages.scrollHeight;
     } catch (error) {
         console.error(`Error loading messages for responseId: ${responseId}:`, error.message);

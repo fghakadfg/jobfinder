@@ -60,6 +60,31 @@
             overflow-y: auto;
             padding: 10px;
             background: #f9f9f9;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .chat-message {
+            max-width: 70%;
+            padding: 8px 12px;
+            border-radius: 12px;
+            position: relative;
+        }
+        .chat-message.sender {
+            background: #1d4ed8; /* Синий фон для сообщений отправителя */
+            color: white;
+            align-self: flex-end; /* Справа */
+        }
+        .chat-message.receiver {
+            background: #e5e7eb; /* Серый фон для сообщений собеседника */
+            color: black;
+            align-self: flex-start; /* Слева */
+        }
+        .chat-message .timestamp {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            margin-top: 4px;
+            text-align: right;
         }
         .chat-input {
             display: flex;
@@ -111,7 +136,7 @@
 
 <div class="container mx-auto py-16 px-4">
     <h2 class="text-3xl font-light text-black mb-6 text-center animate-fadeIn">Личный кабинет соискателя</h2>
-    <div class="bg-white p-6 rounded-lg shadow-md animate-fadeIn">
+    <div class="bg-white p-6 rounded-md shadow-md animate-fadeIn">
         <h3 class="text-xl font-medium text-black mb-4">Мои отклики</h3>
         <div id="response-list" class="space-y-4"></div>
     </div>
