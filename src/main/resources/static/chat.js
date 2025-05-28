@@ -30,6 +30,7 @@ async function fetchUnreadCount(responseId) {
             console.error('Failed to fetch unread count:', await response.text());
             return 0;
         }
+        console.log("Unred Count:", response)
         return await response.json();
     } catch (error) {
         console.error('Error fetching unread count:', error.message);
