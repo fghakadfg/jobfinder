@@ -30,22 +30,18 @@ public class VacancyController {
     private JwtUtil jwtUtil;
     @Autowired
     private VacancyService vacancyService;
-
     @Autowired
     private UserService userService;
-
     @Autowired
     private CompanyService companyService;
-
     @Autowired
     private ResponseService responseService;
-
     @Autowired
     private VacancyRepository vacancyRepository;
 
     @PostMapping("/employer/jobs")
     public ResponseEntity<VacancyResponseDTO> createJob(@Valid @RequestBody VacancyCreateDTO jobDTO, Authentication authentication) {
-        User applicantUser = userService.findByEmail(authentication.getName());
+        User employerUser = userService.findByEmail(authentication.getName());
         Vacancy job = new Vacancy();
         job.setTitle(jobDTO.getTitle());
         job.setDescription(jobDTO.getDescription());
@@ -54,30 +50,34 @@ public class VacancyController {
         job.setLocation(jobDTO.getLocation());
         job.setCompany(jobDTO.getCompanyId() != null ? companyService.getCompanyById(jobDTO.getCompanyId())
                 .orElseThrow(() -> new RuntimeException("Company not found")) : null);
-        job.setEmployer(applicantUser); // Убедимся, что employer устанавливается
+        job.setEmployer(employerUser); // Убедимся, что employer устанавливается
         Vacancy savedJob = vacancyService.createJob(job);
         return ResponseEntity.ok(vacancyService.convertToDTO(savedJob));
     }
 
     @PutMapping("/employer/jobs/{id}")
     public ResponseEntity<VacancyResponseDTO> updateJob(@PathVariable Long id, @Valid @RequestBody VacancyCreateDTO jobDTO, Authentication authentication) {
-        User applicantUser = userService.findByEmail(authentication.getName());
-        Vacancy updatedJob = new Vacancy();
-        updatedJob.setTitle(jobDTO.getTitle());
-        updatedJob.setDescription(jobDTO.getDescription());
-        updatedJob.setSalaryMin(jobDTO.getSalaryMin());
-        updatedJob.setSalaryMax(jobDTO.getSalaryMax());
-        updatedJob.setLocation(jobDTO.getLocation());
-        updatedJob.setCompany(jobDTO.getCompanyId() != null ? companyService.getCompanyById(jobDTO.getCompanyId())
-                .orElseThrow(() -> new RuntimeException("Company not found")) : null);
-        Vacancy savedJob = vacancyService.updateJob(id, updatedJob, applicantUser.getEmail());
+        User employerUser = userService.findByEmail(authentication.getName());
+        // Загружаем существующую вакансию
+        Vacancy existingJob = vacancyService.getVacancyById(id)
+                .orElseThrow(() -> new RuntimeException("Vacancy not found"));
+        // Обновляем только нужные поля
+        existingJob.setTitle(jobDTO.getTitle());
+        existingJob.setDescription(jobDTO.getDescription());
+        existingJob.setSalaryMin(jobDTO.getSalaryMin());
+        existingJob.setSalaryMax(jobDTO.getSalaryMax());
+        existingJob.setLocation(jobDTO.getLocation());
+        existingJob.setCompany(jobDTO.getCompanyId() != null ? companyService.getCompanyById(jobDTO.getCompanyId())
+                .orElseThrow(() -> new RuntimeException("Company not found")) : existingJob.getCompany());
+        // Вызываем сервис для обновления
+        Vacancy savedJob = vacancyService.updateJob(id, existingJob, employerUser.getEmail());
         return ResponseEntity.ok(vacancyService.convertToDTO(savedJob));
     }
 
     @DeleteMapping("/employer/jobs/{id}")
     public ResponseEntity<Void> deleteJob(@PathVariable Long id, Authentication authentication) {
-        User applicantUser = userService.findByEmail(authentication.getName());
-        vacancyService.deleteJob(id, applicantUser.getEmail());
+        User employerUser = userService.findByEmail(authentication.getName());
+        vacancyService.deleteJob(id, employerUser.getEmail());
         return ResponseEntity.noContent().build();
     }
 
@@ -97,8 +97,8 @@ public class VacancyController {
 
     @GetMapping("/employer/jobs")
     public ResponseEntity<List<VacancyResponseDTO>> getJobsByApplicant(Authentication authentication) {
-        User applicantUser = userService.findByEmail(authentication.getName());
-        List<VacancyResponseDTO> jobs = vacancyService.getJobsByEmployer(applicantUser.getId());
+        User employerUser = userService.findByEmail(authentication.getName());
+        List<VacancyResponseDTO> jobs = vacancyService.getJobsByEmployer(employerUser.getId());
         return ResponseEntity.ok(jobs);
     }
 

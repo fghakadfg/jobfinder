@@ -103,8 +103,8 @@
                 await axios.post('http://localhost:8080/api/employer/jobs', jobData, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                onCreate(); // Обновляем список вакансий
-                onClose(); // Закрываем модальное окно
+                onCreate();
+                onClose();
             } catch (error) {
                 setError('Ошибка создания вакансии: ' + (error.response?.data?.message || error.message));
             }
@@ -183,11 +183,124 @@
         );
     };
 
+    const EditJobModal = ({ job, onClose, onUpdate }) => {
+        const [title, setTitle] = useState(job.title || '');
+        const [description, setDescription] = useState(job.description || '');
+        const [salaryMin, setSalaryMin] = useState(job.salaryMin || '');
+        const [salaryMax, setSalaryMax] = useState(job.salaryMax || '');
+        const [location, setLocation] = useState(job.location || '');
+        const [companyId, setCompanyId] = useState(job.companyId || '');
+        const [error, setError] = useState('');
+
+        const handleSubmit = async (e) => {
+            e.preventDefault();
+            setError('');
+            const token = localStorage.getItem('token');
+            if (!token) {
+                setError('Пожалуйста, войдите в систему');
+                return;
+            }
+
+            const jobData = {
+                title,
+                description,
+                salaryMin: salaryMin ? parseInt(salaryMin) : null,
+                salaryMax: salaryMax ? parseInt(salaryMax) : null,
+                location: location || null,
+                company: companyId ? { id: parseInt(companyId) } : null
+            };
+
+            try {
+                await axios.put(`http://localhost:8080/api/employer/jobs/${job.id}`, jobData, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                onUpdate();
+                onClose();
+            } catch (error) {
+                setError('Ошибка обновления вакансии: ' + (error.response?.data?.message || error.message));
+            }
+        };
+
+        return (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white p-6 rounded-md shadow-lg max-w-lg w-full">
+                    <h3 className="text-xl font-medium text-black mb-4">Редактировать вакансию</h3>
+                    {error && <div className="text-red-500 mb-4">{error}</div>}
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <input
+                            type="text"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            placeholder="Название вакансии"
+                            className="w-full p-3 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black transition duration-300"
+                            required
+                        />
+                        <textarea
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            placeholder="Описание вакансии"
+                            className="w-full p-3 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black transition duration-300"
+                            rows="4"
+                            required
+                        />
+                        <div className="flex gap-2">
+                            <input
+                                type="number"
+                                value={salaryMin}
+                                onChange={(e) => setSalaryMin(e.target.value)}
+                                placeholder="Мин. зарплата (USD)"
+                                className="flex-1 p-3 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black transition duration-300"
+                            />
+                            <input
+                                type="number"
+                                value={salaryMax}
+                                onChange={(e) => setSalaryMax(e.target.value)}
+                                placeholder="Макс. зарплата (USD)"
+                                className="flex-1 p-3 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black transition duration-300"
+                            />
+                        </div>
+                        <input
+                            type="text"
+                            value={location}
+                            onChange={(e) => setLocation(e.target.value)}
+                            placeholder="Локация (опционально)"
+                            className="w-full p-3 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black transition duration-300"
+                        />
+                        <input
+                            type="number"
+                            value={companyId}
+                            onChange={(e) => setCompanyId(e.target.value)}
+                            placeholder="ID компании (опционально)"
+                            className="w-full p-3 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black transition duration-300"
+                        />
+                        <div className="flex gap-2">
+                            <button
+                                type="submit"
+                                className="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800 transition duration-300 flex-1"
+                            >
+                                Сохранить
+                            </button>
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="bg-gray-300 text-black px-4 py-2 rounded-md hover:bg-gray-400 transition duration-300 flex-1"
+                            >
+                                Отмена
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        );
+    };
+
     const EmployerJobsPage = () => {
         const [jobs, setJobs] = useState([]);
         const [loading, setLoading] = useState(false);
         const [error, setError] = useState('');
         const [showCreateModal, setShowCreateModal] = useState(false);
+        const [showEditModal, setShowEditModal] = useState(false);
+        const [selectedJob, setSelectedJob] = useState(null);
 
         const fetchJobs = async () => {
             const token = localStorage.getItem('token');
@@ -215,7 +328,8 @@
         };
 
         const handleEdit = (job) => {
-            alert('Редактирование вакансии: ' + job.title); // Заглушка
+            setSelectedJob(job);
+            setShowEditModal(true);
         };
 
         const handleDelete = async (jobId) => {
@@ -229,7 +343,7 @@
                     await axios.delete(`http://localhost:8080/api/employer/jobs/${jobId}`, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
-                    fetchJobs(); // Обновляем список после удаления
+                    fetchJobs();
                 } catch (error) {
                     setError('Ошибка удаления вакансии: ' + error.message);
                 }
@@ -248,7 +362,7 @@
                         <nav className="hidden md:flex space-x-6">
                             <a href="home.html" className="hover-underline animate-slideIn">Главная</a>
                             <a href="vacancies.html" className="hover-underline animate-slideIn">Вакансии</a>
-                            <a href="/applicant-dashboard.html" className="hover-underline animate-slideIn">Личный кабинет</a>
+                            <a href="/employer-dashboard.html" className="hover-underline animate-slideIn">Личный кабинет</a>
                             <a href="/signin.html">Выход</a>
                         </nav>
                         <button className="md:hidden text-white">
@@ -271,6 +385,13 @@
                         <CreateJobModal
                             onClose={() => setShowCreateModal(false)}
                             onCreate={fetchJobs}
+                        />
+                    )}
+                    {showEditModal && selectedJob && (
+                        <EditJobModal
+                            job={selectedJob}
+                            onClose={() => setShowEditModal(false)}
+                            onUpdate={fetchJobs}
                         />
                     )}
                     {loading ? (
