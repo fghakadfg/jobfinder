@@ -32,7 +32,7 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
         String path = request.getRequestURI();
-        if (path.startsWith("/api/auth/")) {
+        if (path.equals("/api/auth/login") || path.equals("/api/auth/register")) { // Только login и register пропускаем
             chain.doFilter(request, response);
             return;
         }
@@ -48,13 +48,17 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-            System.out.println("User authorities: " + userDetails.getAuthorities());
+            System.out.println("User authorities: " + userDetails.getAuthorities()); // Отладка
             if (jwtUtil.validateToken(token, userDetails)) {
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+            } else {
+                System.out.println("Токен недействителен для email: " + email); // Отладка
             }
+        } else if (email == null && authHeader != null) {
+            System.out.println("Не удалось извлечь email из токена: " + authHeader); // Отладка
         }
         chain.doFilter(request, response);
     }

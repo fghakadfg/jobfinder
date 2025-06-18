@@ -124,7 +124,8 @@
             <a href="/home.html" class="hover-underline animate-slideIn">Главная</a>
             <a href="/vacancies.html" class="hover-underline animate-slideIn">Вакансии</a>
             <a href="/employer-dashboard.html" class="hover-underline animate-slideIn">Личный кабинет</a>
-            <a href="/signin.html" class="hover-underline animate-slideIn">Выход</a>
+            <a href="#" onclick="logout()">Выход</a>
+
         </div>
         <button class="md:hidden text-white">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -153,7 +154,40 @@
         <button onclick="sendMessage()">Отправить</button>
     </div>
 </div>
+<script>
+    window.logout = function() {
+   localStorage.removeItem('token');
+   window.location.href = '/signin.html';
+ }
 
+</script>
+
+<script>
+    window.onload = function() {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert('Вы не авторизованы. Пожалуйста, войдите.');
+            window.location.href = '/signin.html';
+            return;
+        }
+        axios.get('http://localhost:8080/api/auth/check-role', {
+            headers: { Authorization: `Bearer ${token}` }
+        }).then(response => {
+            const role = response.data.role;
+            if (role !== 'ROLE_EMPLOYER') {
+                alert('Доступ запрещёsн. Эта страница доступна только для APPLICANT.');
+                window.location.href = '/signin.html';
+            }
+        }).catch(error => {
+            if (error.response && error.response.status === 403) {
+                alert('У вас недостаточно прав для доступа к этой странице.');
+                window.location.href = '/signin.html';
+            } else {
+                console.error('Ошибка проверки роли:', error);
+            }
+        });
+    };
+</script>
 <script src="chat.js"></script>
 <script>
     async function fetchApplicantResponses() {

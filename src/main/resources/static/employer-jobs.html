@@ -44,6 +44,45 @@
 </head>
 <body>
 <div id="root"></div>
+<script>
+    window.logout = function() {
+    localStorage.removeItem('token');
+    window.location.href = '/signin.html';
+  }
+
+</script>
+<script>
+    window.onload = function() {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert('Вы не авторизованы. Пожалуйста, войдите.');
+            window.location.href = '/signin.html';
+            return;
+        }
+        console.log('Токен для проверки:', token); // Отладка
+        axios.get('http://localhost:8080/api/auth/check-role', {
+            headers: { Authorization: `Bearer ${token}` }
+        }).then(response => {
+            const role = response.data.role;
+            if (role !== 'ROLE_APPLICANT') {
+                alert('Доступ запрещён. Эта страница доступна только для APPLICANT.');
+                window.location.href = '/signin.html';
+            }
+        }).catch(error => {
+            if (error.response && error.response.status === 401) {
+                alert('Сессия истекла или токен недействителен. Пожалуйста, войдите заново.');
+                localStorage.removeItem('token'); // Очистка недействительного токена
+                window.location.href = '/signin.html';
+            } else if (error.response && error.response.status === 403) {
+                alert('У вас недостаточно прав для доступа к этой странице.');
+                window.location.href = '/signin.html';
+            } else {
+                console.error('Ошибка проверки роли:', error);
+            }
+        });
+    };
+</script>
+
 
 <script type="text/babel">
     const { useState, useEffect } = React;
@@ -362,8 +401,9 @@
                         <nav className="hidden md:flex space-x-6">
                             <a href="home.html" className="hover-underline animate-slideIn">Главная</a>
                             <a href="vacancies.html" className="hover-underline animate-slideIn">Вакансии</a>
-                            <a href="/employer-dashboard.html" className="hover-underline animate-slideIn">Личный кабинет</a>
-                            <a href="/signin.html">Выход</a>
+                            <a href="/applicant-dashboard.html" className="hover-underline animate-slideIn">Личный кабинет</a>
+                           <a href="#" onClick={logout}>Выход</a>
+
                         </nav>
                         <button className="md:hidden text-white">
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

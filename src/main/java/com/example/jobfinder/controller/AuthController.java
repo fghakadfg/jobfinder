@@ -13,6 +13,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -44,14 +47,29 @@ public class AuthController {
                     ? (UserDetails) authentication.getPrincipal()
                     : userDetailsService.loadUserByUsername(loginRequest.getEmail());
             User user = userService.findByEmail(loginRequest.getEmail());
-            String token = jwtUtil.generateToken(userDetails, user.getId()); // Используем новый метод с id
+            String token = jwtUtil.generateToken(userDetails, user.getId());
             String role = "ROLE_" + user.getRole().name();
+            System.out.println("Сгенерированный токен: " + token); // Для отладки
             return ResponseEntity.ok(new AuthResponse(token, role));
         } catch (AuthenticationException e) {
             return ResponseEntity.status(401).body("Неверный email или пароль: " + e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Внутренняя ошибка сервера: " + e.getMessage());
         }
+    }
+    @GetMapping("/check-role")
+    public ResponseEntity<Map<String, String>> checkRole(Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(401).body(Map.of("message", "Не авторизован"));
+        }
+        // Получаем роль из контекста безопасности
+        String role = org.springframework.security.core.context.SecurityContextHolder.getContext()
+                .getAuthentication().getAuthorities()
+                .stream()
+                .findFirst()
+                .map(Object::toString)
+                .orElse("ROLE_ANONYMOUS");
+        return ResponseEntity.ok(Map.of("role", role));
     }
 }
 
